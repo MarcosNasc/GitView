@@ -2,37 +2,94 @@
     ViewData["Title"] = "Meus repositórios";
 }
 
-<div class="card">
-    <div class="card-body">
-        <div class="row">
-            <div class="col-2">
-                <img src="~/img/waving-hand.png" alt="Bem-vindo" width="70%"/>
-            </div>
-            <div class="col-10">
-                <h1>Bem vindo </h1>
-                <p>Este Git View está apontando para meu perfil, o <a href="https://github.com/@ViewData["GitUser"]" target="_blank">/@ViewData["GitUser"].</a> Pesquise abaixo entre os meus repositórios, ou se preferir, pesquise entre os repositórios globais do GitHub.</p>
-            </div>
-        </div>
-    </div>
-</div>
- 
-<div class="row mt-2">
-   <div class="col-12">
-       <input type="search" class="form-control" placeholder="Pesquise entre meus repositórios "/>
-   </div>
-</div>
-
-<div class="row mt-2">
-    <div class="col-md-3">
-        <div class="card">
-            <div class="card-body text-center">
-                <img src="~/img/folder.png" alt="repositórios"  width="25%"/>
-                <h4 class="mt-2">Titulo</h4>
-                <h6>subtitulo</h6>
+<div id="main">
+    <div class="card">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-2">
+                    <img src="~/img/waving-hand.png" alt="Bem-vindo" width="70%" />
+                </div>
+                <div class="col-10">
+                    <h1>Bem vindo </h1>
+                    <p>Este Git View está apontando para meu perfil, o <a href="https://github.com/@ViewData["GitUser"]" target="_blank">/@ViewData["GitUser"].</a> Pesquise abaixo entre os meus repositórios, ou se preferir, pesquise entre os repositórios globais do GitHub.</p>
+                </div>
             </div>
         </div>
     </div>
 
+    <div class="row mt-2">
+        <div class="col-12">
+            <input type="search" class="form-control" v-model="search" v-on:keyup="searchRepos()" placeholder="Pesquise entre meus repositórios
+" />
+        </div>
+    </div>
+
+    <div class="row mt-2">
+        <div v-for="repo in repos" class="col-md-3 mt-4">
+            <a :href="'Detalhes/' + repo.id">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <img src="~/img/folder.png" alt="repositórios" width="25%" />
+                        <h5 class="mt-2">{{repo.name}}</h5>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+    </div>
 </div>
+
+<script>
+
+
+
+    var app = new Vue({
+        el: "#main",
+        data: {
+            search:"",
+            repos: ""
+        },
+        methods: {
+            getUsersRepos: function () {
+                axios.get("https://api.github.com/users/@ViewData["GitUser"]/repos")
+                    .then((response) => {
+                        this.repos = response.data;
+                    }).catch((err) => {
+                        alert(err);
+                    })
+            },
+            getSpecificRepo: function (name) {
+                axios.get("https://api.github.com/repos/@ViewData["GitUser"]/" + name)
+                    .then((response) => {
+                        console.log(response);
+                        this.repos = [];
+                        this.repos[0] = response.data;
+                    }).catch((err) => {
+                        console.log(err);
+                        console.log(err.response.status);
+                    });
+                
+            },
+            searchRepos: function () {
+                let returnList = [];
+                for (let i = 0; i < this.getUsersRepos.length; i++) {
+                    const repo = this.getUsersRepos[i];
+                    if (repo.name == search) {
+                        returnList.push(repo);
+                    }
+                }
+                if (this.search.length > 0) {
+                    this.getSpecificRepo(this.search);
+                }
+                else {
+                    this.getUsersRepos();
+                }
+            }
+        },
+        mounted: function () {
+            this.getUsersRepos();
+        }
+    });
+</script>
 
 
